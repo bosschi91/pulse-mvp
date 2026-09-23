@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>PULSE — Onchain markets. Socially.</title>
+<style>
+:root{
+  --bg:#08090c; --panel:#101116; --panel2:#14151c; --border:#20232c;
+  --text:#f4f6f8; --muted:#7e8799; --green:#00e6a0; --green2:#0bcf95;
+  --red:#ff5b72; --blue:#2aa7ff; --purple:#9a75ff;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+button,input,textarea{font:inherit}
+button{cursor:pointer}
+.app{display:flex;min-height:100vh}
+.sidebar{width:225px;border-right:1px solid var(--border);padding:22px 18px;position:fixed;inset:0 auto 0 0;background:#0c0d11}
+.brand{display:flex;align-items:center;gap:10px;margin:4px 4px 34px}
+.logo{width:36px;height:36px;border-radius:11px;background:var(--green);display:grid;place-items:center}
+.logo:after{content:"";width:11px;height:11px;border-radius:50%;background:#091014}
+.brand b{font-size:19px}.brand small{display:block;color:var(--muted);font-size:10px;margin-top:1px}
+.nav{display:grid;gap:7px}.nav button{border:0;background:transparent;color:var(--muted);padding:12px 12px;border-radius:12px;text-align:left;font-weight:600}
+.nav button.active,.nav button:hover{background:#181921;color:#fff}.nav button.active{color:var(--green)}
+.notice{position:absolute;bottom:20px;left:18px;right:18px;background:#15161d;border:1px solid var(--border);border-radius:13px;padding:14px;color:#b8bfcc;font-size:12px}.notice b{display:block;color:#fff;margin-bottom:5px}
+.main{margin-left:225px;width:calc(100% - 225px);padding:34px 34px 70px}
+.container{max-width:900px;margin:0 auto}
+.page-title{font-size:28px;font-weight:800;margin:0 0 4px}.subtitle{color:var(--muted);margin-bottom:25px}
+.banner{border:1px solid var(--border);background:#101116;border-radius:12px;padding:11px 14px;color:#b9c0cd;font-size:13px;margin-bottom:20px}.banner strong{color:#fff}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:16px}
+.post{padding:20px;margin-bottom:16px}.user{display:flex;align-items:center;gap:10px}.avatar{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:800;background:linear-gradient(135deg,#04d8a0,#1da7ff)}
+.avatar.orange{background:linear-gradient(135deg,#ff6d4a,#ffb347)}.avatar.blue{background:linear-gradient(135deg,#2388ff,#7b61ff)}.avatar.pink{background:linear-gradient(135deg,#e04e91,#7b61ff)}
+.user b{display:block}.user span{color:var(--muted);font-size:13px}
+.post h3{font-size:17px;margin:20px 0 7px}.post p{color:#aab2c1;line-height:1.55;margin:0 0 15px}
+.token-card{border:1px solid var(--border);border-radius:14px;padding:14px;background:#12131a;display:flex;align-items:center;gap:13px;cursor:pointer}
+.coin{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:#083f31;color:var(--green);font-weight:800;font-size:12px}.coin.blue{background:#0a314b;color:#39b3ff}.coin.purple{background:#251743;color:#a978ff}.coin.red{background:#3a1620;color:#ff6680}
+.token-main{flex:1}.token-main b{font-size:16px}.token-main small{display:block;color:var(--muted);margin-top:3px}.price{text-align:right;font-weight:800}.up{color:var(--green);font-size:12px;margin-top:3px}.down{color:var(--red);font-size:12px;margin-top:3px}
+.spark{height:54px;flex:1;max-width:260px}.spark svg{width:100%;height:100%}
+.actions{display:flex;align-items:center;gap:18px;color:var(--muted);margin-top:14px}.actions button{border:0;background:transparent;color:inherit}.actions .liked{color:#ff5570}.buy{margin-left:auto;border:0;background:var(--green);color:#06110e;font-weight:800;padding:11px 17px;border-radius:12px}
+.section-title{font-size:18px;margin:28px 0 14px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.metric{padding:16px}.metric small{color:var(--muted)}.metric b{display:block;font-size:18px;margin-top:7px}
+.list-card{padding:15px;margin-bottom:10px}.row{display:flex;align-items:center;justify-content:space-between;gap:12px}.why{padding:17px;border:1px solid var(--border);border-radius:14px;background:#11131a;margin-bottom:10px}.why b{display:block;margin-bottom:5px}.why span{color:#aab2c1;font-size:14px}
+.risk{border-left:3px solid #e4b84f;padding:13px 15px;background:#15140f;border-radius:10px;color:#bfc4ce;margin:12px 0}
+.primary{width:100%;border:0;background:var(--green);color:#06110e;font-weight:850;padding:15px;border-radius:13px;font-size:16px}
+.secondary{width:100%;border:1px solid var(--border);background:transparent;color:#fff;padding:14px;border-radius:13px;margin-top:10px}
+.chart{padding:18px}.chart svg{width:100%;height:270px;display:block}.demo{color:#697386;font-size:12px;margin-top:5px}
+.form{padding:20px}.input,.textarea{width:100%;border:1px solid var(--border);background:#171821;color:#fff;border-radius:12px;padding:13px;margin:7px 0 14px;outline:none}.textarea{min-height:130px;resize:vertical}.chips{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 18px}.chip{border:1px solid var(--border);background:#171821;color:#c8ced9;border-radius:9px;padding:8px 11px}.chip.selected{border-color:var(--green);color:var(--green)}
+.tabs{display:flex;gap:24px;border-bottom:1px solid var(--border);margin:20px 0}.tabs button{border:0;background:none;color:var(--muted);padding:12px 0}.tabs button.active{color:#fff;border-bottom:2px solid var(--green)}
+.profile-head{display:flex;gap:16px;align-items:center}.profile-head .avatar{width:72px;height:72px;font-size:24px}.profile-name{font-size:22px;font-weight:800}.profile-handle,.profile-bio{color:var(--muted)}.stats{display:flex;gap:28px;margin-top:18px}.stats b{color:#fff}.stats span{color:var(--muted)}
+.trade{padding:16px;margin-bottom:10px}.trade b{font-size:15px}.trade small{display:block;color:var(--muted);margin-top:5px}
+.toast{position:fixed;right:25px;bottom:25px;background:#151820;border:1px solid var(--border);padding:12px 16px;border-radius:12px;display:none;z-index:10}
+.mobile-nav{display:none}
+@media(max-width:760px){
+ .sidebar{display:none}.main{margin-left:0;width:100%;padding:22px 15px 90px}.container{max-width:none}
+ .mobile-nav{display:flex;position:fixed;z-index:9;left:10px;right:10px;bottom:10px;background:#111218;border:1px solid var(--border);border-radius:16px;padding:7px;justify-content:space-around}
+ .mobile-nav button{border:0;background:none;color:var(--muted);font-size:11px;padding:7px}.mobile-nav button.active{color:var(--green)}
+ .grid{grid-template-columns:1fr}.spark{display:none}.buy{padding:10px 12px}.page-title{font-size:25px}
+}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="sidebar">
+  <div class="brand"><div class="logo"></div><div><b>PULSE</b><small>Onchain markets. Socially.</small></div></div>
+  <div class="nav" id="nav"></div>
+  <div class="notice"><b>Evidence Before Hype</b>Prototype only. No real transactions.</div>
+</aside>
+<main class="main"><div class="container" id="app"></div></main>
+<div class="mobile-nav" id="mobileNav"></div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const tokens={
+ XYZ:{symbol:"$XYZ",name:"Xyz Protocol",price:"$0.0420",change:"+18.4%",coin:"XYZ",cls:"",why:"Volume and new-holder growth accelerating.",market:"$14.2M",liq:"$1.4M",vol:"$3.8M",holders:"18,421"},
+ ABC:{symbol:"$ABC",name:"ABC Network",price:"$1.87",change:"+27.8%",coin:"ABC",cls:"blue",why:"Large-wallet accumulation detected.",market:"$42.8M",liq:"$4.8M",vol:"$8.2M",holders:"52,610"},
+ DEF:{symbol:"$DEF",name:"DEF Finance",price:"$0.3100",change:"+19.4%",coin:"DEF",cls:"purple",why:"Product launch driving organic holder growth.",market:"$18.3M",liq:"$2.1M",vol:"$4.1M",holders:"29,402"},
+ PEPE:{symbol:"$PEPE",name:"Pepe Onchain",price:"$8.40e-6",change:"+11.2%",coin:"PEP",cls:"",why:"Social activity accelerating.",market:"$7.9M",liq:"$920K",vol:"$2.7M",holders:"41,290"},
+ FOMO:{symbol:"$FOMO",name:"Fomo Index",price:"$2.34",change:"-3.1%",coin:"FOM",cls:"red",why:"Social mentions cooling.",market:"$9.1M",liq:"$1.1M",vol:"$1.9M",holders:"8,120"}
+};
+let state={page:"home",liked:false,watch:new Set(),posts:[]};
+const demoPosts=[
+ {user:"Alex Crypto",handle:"@AlexCrypto",avatar:"AL",title:"Why I'm watching $XYZ",text:"Interesting volume growth + increasing holders. The onchain data tells a different story than the charts.",token:"XYZ",likes:124,comments:31},
+ {user:"Sarah Onchain",handle:"@SarahOnchain",avatar:"SA",avatarCls:"orange",title:"$ABC accumulation pattern",text:"Three smart wallets I track all added $ABC positions in the last 24h. Worth paying attention.",token:"ABC",likes:82,comments:18},
+ {user:"Lena Trades",handle:"@LenaTrades",avatar:"LE",avatarCls:"pink",title:"Watching liquidity before entry",text:"I want to see whether liquidity keeps expanding before I make a decision.",token:"DEF",likes:57,comments:11}
+];
+function navItems(){
+ const items=[["home","⌂","Home"],["discover","◉","Discover"],["create","+","Create"],["activity","〽","Activity"],["profile","♙","Profile"]];
+ return items.map(([id,ic,label])=>`<button class="${state.page===id?"active":""}" onclick="go('${id}')">${ic}&nbsp;&nbsp;${label}</button>`).join("");
+}
+function renderNav(){
+ document.getElementById("nav").innerHTML=navItems();
+ document.getElementById("mobileNav").innerHTML=navItems().replace(/&nbsp;&nbsp;/g,"<br>");
+}
+function go(p){state.page=p;render();}
+function toast(t){const e=document.getElementById("toast");e.textContent=t;e.style.display="block";setTimeout(()=>e.style.display="none",1600)}
+function coin(t){return `<div class="coin ${t.cls}">${t.coin}</div>`}
+function spark(up=true){
+ return `<div class="spark"><svg viewBox="0 0 240 60" preserveAspectRatio="none"><polyline fill="none" stroke="${up?'#00e6a0':'#ff5b72'}" stroke-width="2.5" points="${up?'0,45 20,39 42,42 64,33 84,37 108,26 130,31 151,22 174,28 194,17 214,20 240,10':'0,18 25,12 46,24 70,16 91,29 115,22 138,36 162,30 188,41 210,35 240,49'}"/></svg></div>`;
+}
+function tokenCard(k,withBuy=true){
+ const t=tokens[k]; return `<div class="token-card" onclick="token('${k}')">${coin(t)}<div class="token-main"><b>${t.symbol}</b><small>${t.name}</small></div>${spark(!t.change.startsWith("-"))}<div class="price">${t.price}<div class="${t.change.startsWith("-")?'down':'up'}">${t.change}</div></div>${withBuy?`<button class="buy" onclick="event.stopPropagation();buy('${k}')">BUY ${t.symbol} ↗</button>`:""}</div>`;
+}
+function postCard(p){
+ const t=tokens[p.token]; return `<article class="card post">
+ <div class="user"><div class="avatar ${p.avatarCls||""}">${p.avatar}</div><div><b>${p.user}</b><span>${p.handle} · 2h</span></div></div>
+ <h3>${p.title}</h3><p>${p.text}</p>${tokenCard(p.token,false)}
+ <div class="actions"><button onclick="like(this)">♡ ${p.likes+(state.liked&&p===demoPosts[0]?1:0)}</button><button>◯ ${p.comments}</button><button onclick="toast('Link copied')">⌯</button><button class="buy" onclick="buy('${p.token}')">BUY ${t.symbol} ↗</button></div>
+ </article>`;
+}
+function home(){
+ const posts=[...state.posts,...demoPosts];
+ return `<h1 class="page-title">Feed</h1><div class="subtitle">Evidence before hype</div>
+ <div class="banner">↗ <strong>3 tokens</strong> are trending right now</div>
+ ${posts.map(postCard).join("")}`;
+}
+function discover(){
+ return `<h1 class="page-title">Discover</h1><div class="subtitle">Evidence before hype</div>
+ <h2 class="section-title">🔥 Trending</h2>
+ ${["XYZ","ABC","DEF","PEPE","FOMO"].map(k=>`<div class="list-card card" onclick="token('${k}')">${tokenCard(k,false)}<div style="padding:8px 2px 2px;color:#7e8799;font-size:12px">Why trending</div><div style="padding:0 2px 4px">${tokens[k].why}</div></div>`).join("")}
+ <h2 class="section-title">🐋 Smart Wallets</h2>
+ ${[["0x72...A91","+142.5%","$XYZ  $ABC  $DEGEN"],["0x4F...C23","+89.3%","$XYZ  $PEPE  $DEF"],["0x9A...E07","+67.1%","$ABC  $DEF  $FOMO"],["0x1B...D54","+234.8%","$DEGEN  $XYZ  $PEPE"]].map(x=>`<div class="card list-card"><div class="row"><div><b>${x[0]}</b><div style="color:#7e8799;font-size:12px">Smart Wallet</div></div><b style="color:var(--green)">${x[1]}</b></div><div style="color:#8c95a6;font-size:13px;margin-top:9px">Bought: ${x[2]}</div></div>`).join("")}
+ <h2 class="section-title">💬 Most Discussed</h2><div class="grid">${["XYZ","ABC","DEF","PEPE"].map((k,i)=>`<div class="card metric" onclick="token('${k}')"><small>#${i+1}</small><b>${tokens[k].symbol}</b><span style="color:#7e8799">${i*37+124} posts</span></div>`).join("")}</div>`;
+}
+function token(k){
+ state.page="token:"+k; render();
+}
+function tokenPage(k){
+ const t=tokens[k];
+ return `<div style="margin-bottom:18px"><button class="secondary" style="width:auto;margin:0;padding:8px 12px" onclick="go('discover')">← Back</button></div>
+ <div class="card chart"><div class="row"><div style="display:flex;align-items:center;gap:12px">${coin(t)}<div><div style="font-size:21px;font-weight:800">${t.symbol}</div><div style="color:#7e8799">${t.name}</div></div></div><div class="price" style="font-size:20px">${t.price}<div class="up">${t.change} 24h</div></div></div>
+ <svg viewBox="0 0 900 270" preserveAspectRatio="none"><defs><linearGradient id="g" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#00e6a0" stop-opacity=".28"/><stop offset="1" stop-color="#00e6a0" stop-opacity="0"/></linearGradient></defs><path d="M0 235 L35 220 L70 210 L105 214 L140 190 L175 198 L210 166 L245 180 L280 160 L315 170 L350 145 L385 150 L420 130 L455 145 L490 112 L525 118 L560 80 L595 95 L630 60 L665 72 L700 48 L735 64 L770 35 L805 42 L840 24 L900 18 L900 270 L0 270 Z" fill="url(#g)"/><polyline fill="none" stroke="#00e6a0" stroke-width="3" points="0,235 35,220 70,210 105,214 140,190 175,198 210,166 245,180 280,160 315,170 350,145 385,150 420,130 455,145 490,112 525,118 560,80 595,95 630,60 665,72 700,48 735,64 770,35 805,42 840,24 900,18"/></svg>
+ <div class="demo">ⓘ Demo data — not real market data.</div></div>
+ <div class="grid" style="margin-top:12px">${[["Market Cap",t.market],["Liquidity",t.liq],["24h Volume",t.vol],["Holders",t.holders]].map(x=>`<div class="card metric"><small>${x[0]}</small><b>${x[1]}</b></div>`).join("")}</div>
+ <h2 class="section-title">Why is ${t.symbol} moving?</h2><div style="color:#7e8799;margin-bottom:12px">3 things changed in the last 24h</div>
+ ${[
+ ["🐋 LARGE WALLET ACTIVITY","12 large wallets bought recently."],
+ ["👥 HOLDER GROWTH","+1,240 holders in 24h."],
+ ["💬 SOCIAL ACTIVITY","Mentions +312%."]
+ ].map(x=>`<div class="why"><b>${x[0]}</b><span>${x[1]}</span></div>`).join("")}
+ <div class="risk"><b>⚠️ Risk signals</b><br>Liquidity: ${t.liq}<br>Contract: Verified<br>Top-holder concentration: 38%</div>
+ <h2 class="section-title">What people are saying</h2>
+ ${demoPosts.filter(p=>p.token===k || k==="XYZ").slice(0,3).map(p=>`<div class="card post"><div class="user"><div class="avatar ${p.avatarCls||""}">${p.avatar}</div><div><b>${p.user}</b><span>${p.handle}</span></div></div><p style="margin-top:12px">${p.text}</p></div>`).join("")}
+ <button class="primary" onclick="buy('${k}')">BUY ${t.symbol} ↗</button>`;
+}
+function buy(k){
+ const t=tokens[k]; state.page="buy:"+k; render();
+}
+function buyPage(k){
+ const t=tokens[k]; return `<div style="margin-bottom:18px"><button class="secondary" style="width:auto;margin:0;padding:8px 12px" onclick="token('${k}')">← Back</button></div>
+ <div class="card form"><div class="user">${coin(t)}<div><b>Buy ${t.symbol}</b><span>${t.name}</span></div></div>
+ <div class="card metric" style="margin-top:18px"><small>Current price</small><b>${t.price}</b><div class="up">${t.change} (24h)</div><div class="demo">Demo price — not real market data.</div></div>
+ <label style="display:block;color:#7e8799;margin-top:18px">Amount</label><input id="amount" class="input" value="100" type="number" min="1" oninput="calc('${k}')">
+ <div class="chips">${[50,100,250,500].map(n=>`<button class="chip ${n===100?'selected':''}" onclick="setAmt(${n},'${k}')">$${n}</button>`).join("")}</div>
+ <div class="card metric"><small>You receive approximately</small><b id="receive">2.38K ${t.symbol}</b></div>
+ <div class="row" style="margin:18px 0"><span style="color:#7e8799">Network</span><b>Base</b></div>
+ <button class="primary" onclick="success('${k}')">CONFIRM →</button>
+ <div class="demo" style="margin-top:10px">Prototype only — no real transaction.</div></div>`;
+}
+function calc(k){const a=Number(document.getElementById("amount").value)||0;document.getElementById("receive").textContent=(a/0.042).toLocaleString(undefined,{maximumFractionDigits:2})+" "+tokens[k].symbol}
+function setAmt(n,k){document.getElementById("amount").value=n;calc(k)}
+function success(k){state.page="success:"+k;render()}
+function successPage(k){
+ const t=tokens[k]; return `<div style="text-align:center;padding-top:25px"><div class="logo" style="width:78px;height:78px;border-radius:50%;margin:0 auto 20px;font-size:32px">✓</div><h1>Purchase simulated</h1><p style="color:#7e8799">No real transaction was made. This is a prototype.</p>
+ <div class="card form" style="text-align:left;max-width:520px;margin:25px auto"><div class="row"><b>${t.symbol}</b><span>Simulated trade</span></div><hr style="border-color:var(--border);border-width:1px 0 0;margin:18px 0"><div class="row"><span>You bought</span><b>2.38K ${t.symbol}</b></div><div class="row" style="margin-top:14px"><span>At approximately</span><b>${t.price}</b></div><div class="row" style="margin-top:14px"><span>Total spent</span><b>$100</b></div><div class="row" style="margin-top:14px"><span>Network</span><b>Base</b></div></div>
+ <button class="primary" style="max-width:520px" onclick="token('${k}')">← Back to ${t.symbol}</button><button class="secondary" style="max-width:520px" onclick="toast('Share link copied')">Share</button></div>`;
+}
+function create(){
+ return `<h1 class="page-title">Create Post</h1><div class="subtitle">Share analysis. Show your evidence.</div><div class="card form">
+ <div class="user"><div class="avatar">AL</div><div><b>Alex Crypto</b><span>@AlexCrypto</span></div></div>
+ <input id="postTitle" class="input" placeholder="Title — what's your thesis?">
+ <textarea id="postText" class="textarea" placeholder="Share your analysis... What evidence are you seeing?"></textarea>
+ <div style="color:#7e8799"># Link a token</div><div class="chips">${Object.keys(tokens).map(k=>`<button class="chip" id="chip-${k}" onclick="selectChip('${k}')">${tokens[k].symbol}</button>`).join("")}</div>
+ <button class="primary" onclick="publish()">Post</button></div>`;
+}
+let selected="XYZ";
+function selectChip(k){selected=k;document.querySelectorAll(".chip").forEach(x=>x.classList.remove("selected"));document.getElementById("chip-"+k).classList.add("selected")}
+function publish(){const title=document.getElementById("postTitle").value.trim()||"My $"+selected+" thesis";const text=document.getElementById("postText").value.trim()||"Watching the data and waiting for more evidence.";state.posts.unshift({user:"Alex Crypto",handle:"@AlexCrypto",avatar:"AL",title,text,token:selected,likes:0,comments:0});toast("Post published");go("home")}
+function activity(){
+ return `<h1 class="page-title">Activity</h1><div class="subtitle">What is happening around you</div>${[
+ ["SA","SarahOnchain","bought 1,190 $XYZ","3m ago","orange"],["MA","MarcusFlow","started following you","12m ago","blue"],["LE","LenaTrades","mentioned you in a $ABC post","45m ago","pink"],["SA","SarahOnchain","bought 483 $DEF","1h ago","orange"],["MA","MarcusFlow","sold 15,000 $DEGEN","2h ago","blue"],["LE","LenaTrades","bought 5.9M $PEPE","3h ago","pink"],["DA","DegenDave","started following you","5h ago",""]].map(x=>`<div class="card list-card"><div class="row"><div class="user"><div class="avatar ${x[4]}">${x[0]}</div><div><b>@${x[1]}</b> ${x[2]}<div style="color:#697386;font-size:12px">${x[3]}</div></div></div><span style="color:var(--green)">$${x[2].match(/\$(\w+)/)?.[1]||""}</span></div></div>`).join("")}`;
+}
+function profile(){
+ return `<div class="profile-head"><div class="avatar">AL</div><div><div class="profile-name">Alex Crypto</div><div class="profile-handle">@AlexCrypto</div></div></div><p class="profile-bio">Onchain analyst. Evidence before hype. DYOR.</p><div class="stats"><div><b>124</b> <span>Followers</span></div><div><b>87</b> <span>Following</span></div></div>
+ <div class="tabs"><button class="active" onclick="profileTab('posts',this)">Posts</button><button onclick="profileTab('trades',this)">Trades</button><button onclick="profileTab('watch',this)">Watchlist</button></div><div id="profileContent">${demoPosts.slice(0,2).map(postCard).join("")}</div>`;
+}
+function profileTab(tab,btn){document.querySelectorAll(".tabs button").forEach(b=>b.classList.remove("active"));btn.classList.add("active");const c=document.getElementById("profileContent");
+ if(tab==="posts") c.innerHTML=demoPosts.slice(0,2).map(postCard).join("");
+ if(tab==="trades") c.innerHTML=[["BUY","$XYZ","2.38K","$100 @ $0.0420"],["BUY","$ABC","133.70","$250 @ $1.87"],["SELL","$DEF","483.90","$150 @ $0.3100"],["BUY","$PEPE","5.9M","$50 @ $8.4e-6"]].map(x=>`<div class="card trade"><div class="row"><b style="color:${x[0]==="BUY"?'var(--green)':'var(--red)'}">${x[0]} &nbsp; ${x[1]}</b><b>${x[2]}</b></div><small>${x[3]}</small></div>`).join("");
+ if(tab==="watch") c.innerHTML=Array.from(state.watch).length?Array.from(state.watch).map(k=>tokenCard(k,false)).join(""):`<div class="card metric">Your watchlist is empty. Open a token and choose “Watching”.</div>`;
+}
+function render(){
+ renderNav();
+ const a=document.getElementById("app");
+ if(state.page==="home")a.innerHTML=home();
+ else if(state.page==="discover")a.innerHTML=discover();
+ else if(state.page==="create")a.innerHTML=create();
+ else if(state.page==="activity")a.innerHTML=activity();
+ else if(state.page==="profile")a.innerHTML=profile();
+ else if(state.page.startsWith("token:"))a.innerHTML=tokenPage(state.page.split(":")[1]);
+ else if(state.page.startsWith("buy:"))a.innerHTML=buyPage(state.page.split(":")[1]);
+ else if(state.page.startsWith("success:"))a.innerHTML=successPage(state.page.split(":")[1]);
+}
+function like(btn){state.liked=!state.liked;btn.classList.toggle("liked",state.liked);btn.textContent=state.liked?"♥ 125":"♡ 124"}
+render();
+</script>
+</body>
+</html>
