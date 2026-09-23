@@ -42,7 +42,7 @@ button{cursor:pointer}
 .risk{border-left:3px solid #e4b84f;padding:13px 15px;background:#15140f;border-radius:10px;color:#bfc4ce;margin:12px 0}
 .primary{width:100%;border:0;background:var(--green);color:#06110e;font-weight:850;padding:15px;border-radius:13px;font-size:16px}
 .secondary{width:100%;border:1px solid var(--border);background:transparent;color:#fff;padding:14px;border-radius:13px;margin-top:10px}
-.chart{padding:18px}.chart svg{width:100%;height:270px;display:block}.timeframes{display:flex;gap:7px;margin:14px 0}.timeframes button{border:1px solid var(--border);background:#171821;color:#aeb6c4;border-radius:9px;padding:8px 13px;font-weight:700}.timeframes button.active{background:var(--green);color:#06110e;border-color:var(--green)}.watch-btn{border:1px solid var(--border);background:#171821;color:#fff;border-radius:11px;padding:10px 13px;font-weight:700}.watch-btn.watching{color:var(--green);border-color:var(--green)}.photo-preview{margin:10px 0;border-radius:13px;overflow:hidden;border:1px solid var(--border);display:none}.photo-preview img{width:100%;max-height:360px;object-fit:cover;display:block}.activity-item{padding:16px}.activity-icon{width:38px;height:38px;border-radius:11px;background:#171821;display:grid;place-items:center;font-size:18px}.demo{color:#697386;font-size:12px;margin-top:5px}
+.chart{padding:18px}.chart svg{width:100%;height:270px;display:block}.tv-wrap{margin-top:2px;background:#0c0e13;border:1px solid #1f2430;border-radius:10px;overflow:hidden}.tv-chart{height:330px!important;background:#0c0e13}.tv-footer{display:flex;justify-content:space-between;padding:8px 12px;border-top:1px solid #1f2430;color:#687285;font-size:10px;text-transform:uppercase;letter-spacing:.08em}.timeframes{display:flex;gap:7px;margin:14px 0}.timeframes button{border:1px solid var(--border);background:#171821;color:#aeb6c4;border-radius:9px;padding:8px 13px;font-weight:700}.timeframes button.active{background:var(--green);color:#06110e;border-color:var(--green)}.watch-btn{border:1px solid var(--border);background:#171821;color:#fff;border-radius:11px;padding:10px 13px;font-weight:700}.watch-btn.watching{color:var(--green);border-color:var(--green)}.photo-preview{margin:10px 0;border-radius:13px;overflow:hidden;border:1px solid var(--border);display:none}.photo-preview{position:relative}.photo-preview img{width:100%;max-height:360px;object-fit:cover;display:block}.photo-remove{position:absolute;right:10px;top:10px;width:32px;height:32px;border-radius:50%;border:0;background:rgba(0,0,0,.72);color:#fff;font-size:20px;line-height:32px;padding:0;cursor:pointer}.activity-item{padding:16px}.activity-icon{width:38px;height:38px;border-radius:11px;background:#171821;display:grid;place-items:center;font-size:18px}.demo{color:#697386;font-size:12px;margin-top:5px}
 .form{padding:20px}.input,.textarea{width:100%;border:1px solid var(--border);background:#171821;color:#fff;border-radius:12px;padding:13px;margin:7px 0 14px;outline:none}.textarea{min-height:130px;resize:vertical}.chips{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 18px}.chip{border:1px solid var(--border);background:#171821;color:#c8ced9;border-radius:9px;padding:8px 11px}.chip.selected{border-color:var(--green);color:var(--green)}
 .tabs{display:flex;gap:24px;border-bottom:1px solid var(--border);margin:20px 0}.tabs button{border:0;background:none;color:var(--muted);padding:12px 0}.tabs button.active{color:#fff;border-bottom:2px solid var(--green)}
 .profile-head{display:flex;gap:16px;align-items:center}.profile-head .avatar{width:72px;height:72px;font-size:24px}.profile-name{font-size:22px;font-weight:800}.profile-handle,.profile-bio{color:var(--muted)}.stats{display:flex;gap:28px;margin-top:18px}.stats b{color:#fff}.stats span{color:var(--muted)}
@@ -85,7 +85,7 @@ const demoPosts=[
  {user:"Lena Trades",handle:"@LenaTrades",avatar:"LE",avatarCls:"pink",title:"Watching liquidity before entry",text:"I want to see whether liquidity keeps expanding before I make a decision.",token:"DEF",likes:57,comments:11}
 ];
 function navItems(){
- const items=[["home","⌂","Home"],["discover","◉","Discover"],["create","+","Create"],["activity","〽","Activity"],["profile","♙","Profile"]];
+ const items=[["home","⌂","Home"],["discover","◉","Discover"],["futures","↕","Perps"],["create","+","Create"],["messages","✉","DMs"],["activity","〽","Activity"],["profile","♙","Profile"]];
  return items.map(([id,ic,label])=>`<button class="${state.page===id?"active":""}" onclick="go('${id}')">${ic}&nbsp;&nbsp;${label}</button>`).join("");
 }
 function renderNav(){
@@ -103,7 +103,7 @@ function tokenCard(k,withBuy=true){
 }
 function postCard(p){
  const t=tokens[p.token]; return `<article class="card post">
- <div class="user"><div class="avatar ${p.avatarCls||""}">${p.avatar}</div><div><b>${p.user}</b><span>${p.handle} · 2h</span></div></div>
+ <div class="user" onclick="event.stopPropagation();openProfile('${p.handle}','${p.user}')" style="cursor:pointer"><div class="avatar ${p.avatarCls||""}">${p.avatar}</div><div><b>${p.user}</b><span>${p.handle} · 2h</span></div></div>
  <h3>${p.title}</h3><p>${p.text}</p>${tokenCard(p.token,false)}
  <div class="actions"><button onclick="like(this)">♡ ${p.likes+(state.liked&&p===demoPosts[0]?1:0)}</button><button>◯ ${p.comments}</button><button onclick="toast('Link copied')">⌯</button><button class="buy" onclick="buy('${p.token}')">BUY ${t.symbol} ↗</button></div>
  </article>`;
@@ -126,8 +126,32 @@ function token(k){
  state.page="token:"+k; render();
 }
 function chartSvg(tf){
- const pts={"1H":"0,215 55,205 110,214 165,180 220,191 275,154 330,168 385,130 440,142 495,105 550,118 605,80 660,91 715,62 770,72 825,38 900,25","4H":"0,220 55,212 110,190 165,198 220,174 275,182 330,150 385,158 440,128 495,138 550,110 605,122 660,92 715,101 770,72 825,81 900,48","1D":"0,235 35,220 70,210 105,214 140,190 175,198 210,166 245,180 280,160 315,170 350,145 385,150 420,130 455,145 490,112 525,118 560,80 595,95 630,60 665,72 700,48 735,64 770,35 805,42 840,24 900,18"};
- return `<svg viewBox="0 0 900 270" preserveAspectRatio="none"><polyline fill="none" stroke="var(--green)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" points="${pts[tf]}"/></svg>`;
+ const configs={
+  "1H":{count:28,base:82,vol:42,step:2.7},
+  "4H":{count:32,base:76,vol:48,step:2.2},
+  "1D":{count:36,base:70,vol:55,step:1.9}
+ };
+ const c=configs[tf]||configs["1D"], W=900,H=320, left=14,right=74,top=12,bottom=58, chartH=225, volTop=252, volH=48;
+ let price=c.base, candles=[], vols=[];
+ for(let i=0;i<c.count;i++){
+   const wave=Math.sin(i*0.72)*5 + Math.sin(i*0.19)*4 + i*c.step;
+   const open=price;
+   const close=c.base+wave+(i%5===0?4:0);
+   const high=Math.max(open,close)+4+(i%4);
+   const low=Math.min(open,close)-3-(i%3);
+   price=close; candles.push({open,close,high,low}); vols.push(16+(i*13)%35);
+ }
+ const min=Math.min(...candles.map(x=>x.low))-4,max=Math.max(...candles.map(x=>x.high))+4;
+ const py=v=>top+(max-v)/(max-min)*chartH;
+ const x=i=>left+i*((W-left-right)/(c.count-1));
+ const candleW=Math.max(6,((W-left-right)/c.count)*0.62);
+ let grid='';
+ for(let g=0;g<=5;g++){const y=top+g*chartH/5;const val=max-(max-min)*g/5;grid+=`<line x1="${left}" y1="${y}" x2="${W-right}" y2="${y}" stroke="#252936" stroke-width="1"/><text x="${W-right+8}" y="${y+4}" fill="#70798b" font-size="11">${val.toFixed(2)}</text>`;}
+ for(let g=0;g<6;g++){const xx=left+g*(W-left-right)/5;grid+=`<line x1="${xx}" y1="${top}" x2="${xx}" y2="${volTop+volH}" stroke="#1e222d" stroke-width="1"/>`; }
+ let body='',volume='';
+ candles.forEach((d,i)=>{const xx=x(i), up=d.close>=d.open, cls=up?'#00e6a0':'#ff5b72'; const yO=py(d.open),yC=py(d.close),yH=py(d.high),yL=py(d.low); body+=`<line x1="${xx}" y1="${yH}" x2="${xx}" y2="${yL}" stroke="${cls}" stroke-width="2"/><rect x="${xx-candleW/2}" y="${Math.min(yO,yC)}" width="${candleW}" height="${Math.max(2,Math.abs(yC-yO))}" fill="${cls}" rx="1"/>`; const vh=vols[i]; volume+=`<rect x="${xx-candleW/2}" y="${volTop+volH-vh}" width="${candleW}" height="${vh}" fill="${cls}" opacity=".38"/>`;});
+ const last=candles[candles.length-1].close,lastY=py(last);
+ return `<div class="tv-wrap"><svg class="tv-chart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-label="TradingView style candlestick chart">${grid}<line x1="${left}" y1="${volTop-6}" x2="${W-right}" y2="${volTop-6}" stroke="#252936"/><text x="${left}" y="${volTop+42}" fill="#596274" font-size="10">VOL</text>${volume}${body}<line x1="${left}" y1="${lastY}" x2="${W-right}" y2="${lastY}" stroke="#00e6a0" stroke-dasharray="5 5" opacity=".75"/><rect x="${W-right+3}" y="${lastY-10}" width="65" height="20" rx="4" fill="#00e6a0"/><text x="${W-right+35}" y="${lastY+4}" text-anchor="middle" fill="#06110e" font-size="11" font-weight="700">${last.toFixed(2)}</text></svg><div class="tv-footer"><span>${tf} • Candles</span><span>Volume</span><span>Demo market data</span></div></div>`;
 }
 function setChartTf(tf,k){state.chartTf=tf;render();}
 function toggleWatch(k){if(state.watch.has(k)){state.watch.delete(k);toast('Removed from Watchlist')}else{state.watch.add(k);toast('Added to Watchlist')}render();}
@@ -141,7 +165,7 @@ function tokenPage(k){
  ${[["🐋 LARGE WALLET ACTIVITY","12 large wallets bought recently."],["👥 HOLDER GROWTH","+1,240 holders in 24h."],["💬 SOCIAL ACTIVITY","Mentions +312%."]].map(x=>`<div class="why"><b>${x[0]}</b><span>${x[1]}</span></div>`).join("")}
  <div class="risk"><b>⚠️ Risk signals</b><br>Liquidity: ${t.liq}<br>Contract: Verified<br>Top-holder concentration: 38%</div>
  <h2 class="section-title">What people are saying</h2>
- ${[...state.posts,...demoPosts].filter(p=>p.token===k || k==="XYZ").slice(0,3).map(p=>`<div class="card post"><div class="user"><div class="avatar ${p.avatarCls||""}">${p.avatar}</div><div><b>${p.user}</b><span>${p.handle}</span></div></div><p style="margin-top:12px">${p.text}</p>${p.photo?`<img src="${p.photo}" style="width:100%;max-height:360px;object-fit:cover;border-radius:12px;margin-top:8px">`:''}</div>`).join("")}
+ ${[...state.posts,...demoPosts].filter(p=>p.token===k || k==="XYZ").slice(0,3).map(p=>`<div class="card post"><div class="user" onclick="openProfile('${p.handle}','${p.user}')" style="cursor:pointer"><div class="avatar ${p.avatarCls||""}">${p.avatar}</div><div><b>${p.user}</b><span>${p.handle}</span></div></div><p style="margin-top:12px">${p.text}</p>${p.photo?`<img src="${p.photo}" style="width:100%;max-height:360px;object-fit:cover;border-radius:12px;margin-top:8px">`:''}</div>`).join("")}
  <button class="primary" onclick="buy('${k}')">BUY ${t.symbol} ↗</button>`;
 }
 function buy(k){
@@ -171,12 +195,13 @@ function create(){
  <div class="user"><div class="avatar">AL</div><div><b>Alex Crypto</b><span>@AlexCrypto</span></div></div>
  <input id="postTitle" class="input" placeholder="Title — what's your thesis?">
  <textarea id="postText" class="textarea" placeholder="Share your analysis... What evidence are you seeing?"></textarea>
- <div style="display:flex;gap:9px;flex-wrap:wrap;margin-bottom:10px"><button class="secondary" style="width:auto;margin:0;padding:10px 13px" onclick="document.getElementById('photoInput').click()">📷 Add photo</button><input id="photoInput" type="file" accept="image/*" style="display:none" onchange="previewPhoto(this)"><button class="secondary" style="width:auto;margin:0;padding:10px 13px" onclick="state.photo=null;document.getElementById('photoPreview').style.display='none'">Remove photo</button></div>
- <div id="photoPreview" class="photo-preview"><img id="photoImg"></div>
+ <div style="margin-bottom:10px"><button class="secondary" style="width:auto;margin:0;padding:10px 13px" onclick="document.getElementById('photoInput').click()">📷 Add photo</button><input id="photoInput" type="file" accept="image/*" style="display:none" onchange="previewPhoto(this)"></div>
+ <div id="photoPreview" class="photo-preview"><button class="photo-remove" aria-label="Remove photo" onclick="removePhoto()">×</button><img id="photoImg"></div>
  <div style="color:#7e8799"># Link a token</div><div class="chips">${Object.keys(tokens).map(k=>`<button class="chip" id="chip-${k}" onclick="selectChip('${k}')">${tokens[k].symbol}</button>`).join("")}</div>
  <button class="primary" onclick="publish()">Post</button></div>`;
 }
 function previewPhoto(input){const file=input.files?.[0];if(!file)return;const reader=new FileReader();reader.onload=e=>{state.photo=e.target.result;document.getElementById('photoImg').src=state.photo;document.getElementById('photoPreview').style.display='block'};reader.readAsDataURL(file)}
+function removePhoto(){state.photo=null;document.getElementById('photoInput').value='';document.getElementById('photoPreview').style.display='none'}
 
 let selected="XYZ";
 function selectChip(k){selected=k;document.querySelectorAll(".chip").forEach(x=>x.classList.remove("selected"));document.getElementById("chip-"+k).classList.add("selected")}
@@ -196,6 +221,12 @@ function activity(){
  <div class="card list-card" style="margin-bottom:14px"><div class="row"><div><b>⚡ Your PULSE activity</b><div style="color:#697386;font-size:12px;margin-top:4px">Watchlists, posts, likes and trades</div></div><span style="color:var(--green)">${state.posts.length} new post${state.posts.length===1?'':'s'}</span></div></div>
  ${items.map(x=>`<div class="card activity-item" style="margin-bottom:10px"><div class="row"><div class="user"><div class="activity-icon">${x[0]}</div><div><b>${x[1]}</b> ${x[2]}<div style="color:#697386;font-size:12px;margin-top:3px">${x[3]}</div></div></div></div></div>`).join('')}`;
 }
+function openProfile(handle,name){state.page="user:"+handle.replace('@','');state.profileUser={handle,name};render();}
+function userProfile(){const u=state.profileUser||{handle:"@AlexCrypto",name:"Alex Crypto"};const posts=demoPosts.filter(p=>p.handle===u.handle);return `<div style="margin-bottom:18px"><button class="secondary" style="width:auto;margin:0;padding:8px 12px" onclick="go('home')">← Back</button></div><div class="card form"><div class="profile-head"><div class="avatar">${u.name.split(' ').map(x=>x[0]).join('').slice(0,2)}</div><div><div class="profile-name">${u.name}</div><div class="profile-handle">${u.handle}</div></div><button class="primary" style="width:auto;margin-left:auto;padding:10px 16px" onclick="openDM('${u.handle}','${u.name}')">Message</button></div><p class="profile-bio">Onchain analyst. Evidence before hype. DYOR.</p><div class="stats"><div><b>${u.handle==='@AlexCrypto'?'124':'68'}</b> <span>Followers</span></div><div><b>${u.handle==='@AlexCrypto'?'87':'42'}</b> <span>Following</span></div></div></div><h2 class="section-title">Posts</h2>${posts.length?posts.map(postCard).join(''):`<div class="card metric">No posts yet.</div>`}`;}
+function openDM(handle,name){state.dmUser={handle,name};state.page='dm:'+handle.replace('@','');render();}
+function messages(){return `<h1 class="page-title">Messages</h1><div class="subtitle">Private conversations</div><div class="card list-card" onclick="openDM('@SarahOnchain','Sarah Onchain')" style="cursor:pointer"><div class="user"><div class="avatar orange">SA</div><div><b>Sarah Onchain</b><span>@SarahOnchain · Smart wallet discussion</span></div><span style="margin-left:auto;color:var(--green)">›</span></div></div><div class="card list-card" onclick="openDM('@LenaTrades','Lena Trades')" style="cursor:pointer"><div class="user"><div class="avatar pink">LE</div><div><b>Lena Trades</b><span>@LenaTrades · Liquidity chat</span></div><span style="margin-left:auto;color:var(--green)">›</span></div></div>`;}
+function dmPage(){const u=state.dmUser||{handle:'@SarahOnchain',name:'Sarah Onchain'};return `<div style="margin-bottom:18px"><button class="secondary" style="width:auto;margin:0;padding:8px 12px" onclick="go('messages')">← Messages</button></div><h1 class="page-title">${u.name}</h1><div class="subtitle">${u.handle}</div><div class="card form" style="min-height:280px"><div class="card metric"><b>${u.name}</b><p style="color:#7e8799;margin-bottom:0">Hey! This is the PULSE DM prototype. Real-time messaging can be connected later.</p></div><div style="display:flex;gap:8px;margin-top:160px"><input class="input" placeholder="Write a message..." style="margin:0"><button class="primary" style="width:auto;margin:0;padding:0 18px" onclick="toast('Message sent')">Send</button></div></div>`;}
+function futures(){const rows=[['BTC-PERP','67,420','+2.14%','12.8B'],['ETH-PERP','2,648','+3.81%','8.4B'],['SOL-PERP','184.20','-1.22%','3.1B'],['PULSE-PERP','0.0842','+8.64%','412M']];return `<h1 class="page-title">Perpetual Futures</h1><div class="subtitle">Trade crypto perpetuals with leverage. Prototype only.</div><div class="banner">⚠️ <strong>High risk</strong> — leverage can amplify gains and losses. No real orders are placed.</div><div class="grid">${rows.map(r=>`<div class="card list-card" onclick="toast('${r[0]} selected')" style="cursor:pointer"><div class="row"><div><b>${r[0]}</b><div style="color:#697386;font-size:12px;margin-top:4px">24h volume $${r[3]}</div></div><div style="text-align:right"><b>${r[1]}</b><div class="${r[2].startsWith('-')?'down':'up'}">${r[2]}</div></div></div><div style="display:flex;gap:7px;margin-top:14px"><button class="chip selected">LONG</button><button class="chip">SHORT</button><button class="chip">5×</button></div></div>`).join('')}</div><h2 class="section-title">Perps order</h2><div class="card form"><div class="row"><span>Margin</span><b>$100</b></div><div class="row" style="margin-top:14px"><span>Leverage</span><b>5×</b></div><div class="row" style="margin-top:14px"><span>Position size</span><b>$500</b></div><button class="primary" onclick="toast('Prototype order — no real trade')">OPEN LONG</button></div>`;}
 function profile(){
  return `<div class="profile-head"><div class="avatar">AL</div><div><div class="profile-name">Alex Crypto</div><div class="profile-handle">@AlexCrypto</div></div></div><p class="profile-bio">Onchain analyst. Evidence before hype. DYOR.</p><div class="stats"><div><b>124</b> <span>Followers</span></div><div><b>87</b> <span>Following</span></div></div>
  <div class="tabs"><button class="active" onclick="profileTab('posts',this)">Posts</button><button onclick="profileTab('trades',this)">Trades</button><button onclick="profileTab('watch',this)">Watchlist</button></div><div id="profileContent">${demoPosts.slice(0,2).map(postCard).join("")}</div>`;
@@ -213,6 +244,10 @@ function render(){
  else if(state.page==="create")a.innerHTML=create();
  else if(state.page==="activity")a.innerHTML=activity();
  else if(state.page==="profile")a.innerHTML=profile();
+ else if(state.page==="futures")a.innerHTML=futures();
+ else if(state.page==="messages")a.innerHTML=messages();
+ else if(state.page.startsWith("user:"))a.innerHTML=userProfile();
+ else if(state.page.startsWith("dm:"))a.innerHTML=dmPage();
  else if(state.page.startsWith("token:"))a.innerHTML=tokenPage(state.page.split(":")[1]);
  else if(state.page.startsWith("buy:"))a.innerHTML=buyPage(state.page.split(":")[1]);
  else if(state.page.startsWith("success:"))a.innerHTML=successPage(state.page.split(":")[1]);
