@@ -42,7 +42,7 @@ button{cursor:pointer}
 .risk{border-left:3px solid #e4b84f;padding:13px 15px;background:#15140f;border-radius:10px;color:#bfc4ce;margin:12px 0}
 .primary{width:100%;border:0;background:var(--green);color:#06110e;font-weight:850;padding:15px;border-radius:13px;font-size:16px}
 .secondary{width:100%;border:1px solid var(--border);background:transparent;color:#fff;padding:14px;border-radius:13px;margin-top:10px}
-.chart{padding:18px}.chart svg{width:100%;height:270px;display:block}.demo{color:#697386;font-size:12px;margin-top:5px}
+.chart{padding:18px}.chart svg{width:100%;height:270px;display:block}.timeframes{display:flex;gap:7px;margin:14px 0}.timeframes button{border:1px solid var(--border);background:#171821;color:#aeb6c4;border-radius:9px;padding:8px 13px;font-weight:700}.timeframes button.active{background:var(--green);color:#06110e;border-color:var(--green)}.watch-btn{border:1px solid var(--border);background:#171821;color:#fff;border-radius:11px;padding:10px 13px;font-weight:700}.watch-btn.watching{color:var(--green);border-color:var(--green)}.photo-preview{margin:10px 0;border-radius:13px;overflow:hidden;border:1px solid var(--border);display:none}.photo-preview img{width:100%;max-height:360px;object-fit:cover;display:block}.activity-item{padding:16px}.activity-icon{width:38px;height:38px;border-radius:11px;background:#171821;display:grid;place-items:center;font-size:18px}.demo{color:#697386;font-size:12px;margin-top:5px}
 .form{padding:20px}.input,.textarea{width:100%;border:1px solid var(--border);background:#171821;color:#fff;border-radius:12px;padding:13px;margin:7px 0 14px;outline:none}.textarea{min-height:130px;resize:vertical}.chips{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 18px}.chip{border:1px solid var(--border);background:#171821;color:#c8ced9;border-radius:9px;padding:8px 11px}.chip.selected{border-color:var(--green);color:var(--green)}
 .tabs{display:flex;gap:24px;border-bottom:1px solid var(--border);margin:20px 0}.tabs button{border:0;background:none;color:var(--muted);padding:12px 0}.tabs button.active{color:#fff;border-bottom:2px solid var(--green)}
 .profile-head{display:flex;gap:16px;align-items:center}.profile-head .avatar{width:72px;height:72px;font-size:24px}.profile-name{font-size:22px;font-weight:800}.profile-handle,.profile-bio{color:var(--muted)}.stats{display:flex;gap:28px;margin-top:18px}.stats b{color:#fff}.stats span{color:var(--muted)}
@@ -78,7 +78,7 @@ const tokens={
  PEPE:{symbol:"$PEPE",name:"Pepe Onchain",price:"$8.40e-6",change:"+11.2%",coin:"PEP",cls:"",why:"Social activity accelerating.",market:"$7.9M",liq:"$920K",vol:"$2.7M",holders:"41,290"},
  FOMO:{symbol:"$FOMO",name:"Fomo Index",price:"$2.34",change:"-3.1%",coin:"FOM",cls:"red",why:"Social mentions cooling.",market:"$9.1M",liq:"$1.1M",vol:"$1.9M",holders:"8,120"}
 };
-let state={page:"home",liked:false,watch:new Set(),posts:[]};
+let state={page:"home",liked:false,watch:new Set(),posts:[],photo:null,chartTf:"1D"};
 const demoPosts=[
  {user:"Alex Crypto",handle:"@AlexCrypto",avatar:"AL",title:"Why I'm watching $XYZ",text:"Interesting volume growth + increasing holders. The onchain data tells a different story than the charts.",token:"XYZ",likes:124,comments:31},
  {user:"Sarah Onchain",handle:"@SarahOnchain",avatar:"SA",avatarCls:"orange",title:"$ABC accumulation pattern",text:"Three smart wallets I track all added $ABC positions in the last 24h. Worth paying attention.",token:"ABC",likes:82,comments:18},
@@ -111,13 +111,13 @@ function postCard(p){
 function home(){
  const posts=[...state.posts,...demoPosts];
  return `<h1 class="page-title">Feed</h1><div class="subtitle">Evidence before hype</div>
- <div class="banner">↗ <strong>3 tokens</strong> are trending right now</div>
+ <div class="banner">🔥 <strong>Trending now</strong> — $XYZ +18.4% · $ABC +27.8% · $DEF +19.4%</div>
  ${posts.map(postCard).join("")}`;
 }
 function discover(){
  return `<h1 class="page-title">Discover</h1><div class="subtitle">Evidence before hype</div>
  <h2 class="section-title">🔥 Trending</h2>
- ${["XYZ","ABC","DEF","PEPE","FOMO"].map(k=>`<div class="list-card card" onclick="token('${k}')">${tokenCard(k,false)}<div style="padding:8px 2px 2px;color:#7e8799;font-size:12px">Why trending</div><div style="padding:0 2px 4px">${tokens[k].why}</div></div>`).join("")}
+ ${["XYZ","ABC","DEF"].map((k,i)=>`<div class="list-card card" onclick="token('${k}')"><div style="display:flex;justify-content:space-between;color:#7e8799;font-size:12px;margin-bottom:7px"><span>#${i+1} Trending</span><span style="color:var(--green)">${tokens[k].change}</span></div>${tokenCard(k,false)}<div style="padding:8px 2px 2px;color:#7e8799;font-size:12px">Why trending</div><div style="padding:0 2px 4px">${tokens[k].why}</div></div>`).join("")}
  <h2 class="section-title">🐋 Smart Wallets</h2>
  ${[["0x72...A91","+142.5%","$XYZ  $ABC  $DEGEN"],["0x4F...C23","+89.3%","$XYZ  $PEPE  $DEF"],["0x9A...E07","+67.1%","$ABC  $DEF  $FOMO"],["0x1B...D54","+234.8%","$DEGEN  $XYZ  $PEPE"]].map(x=>`<div class="card list-card"><div class="row"><div><b>${x[0]}</b><div style="color:#7e8799;font-size:12px">Smart Wallet</div></div><b style="color:var(--green)">${x[1]}</b></div><div style="color:#8c95a6;font-size:13px;margin-top:9px">Bought: ${x[2]}</div></div>`).join("")}
  <h2 class="section-title">💬 Most Discussed</h2><div class="grid">${["XYZ","ABC","DEF","PEPE"].map((k,i)=>`<div class="card metric" onclick="token('${k}')"><small>#${i+1}</small><b>${tokens[k].symbol}</b><span style="color:#7e8799">${i*37+124} posts</span></div>`).join("")}</div>`;
@@ -125,22 +125,23 @@ function discover(){
 function token(k){
  state.page="token:"+k; render();
 }
+function chartSvg(tf){
+ const pts={"1H":"0,215 55,205 110,214 165,180 220,191 275,154 330,168 385,130 440,142 495,105 550,118 605,80 660,91 715,62 770,72 825,38 900,25","4H":"0,220 55,212 110,190 165,198 220,174 275,182 330,150 385,158 440,128 495,138 550,110 605,122 660,92 715,101 770,72 825,81 900,48","1D":"0,235 35,220 70,210 105,214 140,190 175,198 210,166 245,180 280,160 315,170 350,145 385,150 420,130 455,145 490,112 525,118 560,80 595,95 630,60 665,72 700,48 735,64 770,35 805,42 840,24 900,18"};
+ return `<svg viewBox="0 0 900 270" preserveAspectRatio="none"><polyline fill="none" stroke="var(--green)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" points="${pts[tf]}"/></svg>`;
+}
+function setChartTf(tf,k){state.chartTf=tf;render();}
+function toggleWatch(k){if(state.watch.has(k)){state.watch.delete(k);toast('Removed from Watchlist')}else{state.watch.add(k);toast('Added to Watchlist')}render();}
 function tokenPage(k){
- const t=tokens[k];
+ const t=tokens[k], watching=state.watch.has(k);
  return `<div style="margin-bottom:18px"><button class="secondary" style="width:auto;margin:0;padding:8px 12px" onclick="go('discover')">← Back</button></div>
- <div class="card chart"><div class="row"><div style="display:flex;align-items:center;gap:12px">${coin(t)}<div><div style="font-size:21px;font-weight:800">${t.symbol}</div><div style="color:#7e8799">${t.name}</div></div></div><div class="price" style="font-size:20px">${t.price}<div class="up">${t.change} 24h</div></div></div>
- <svg viewBox="0 0 900 270" preserveAspectRatio="none"><defs><linearGradient id="g" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#00e6a0" stop-opacity=".28"/><stop offset="1" stop-color="#00e6a0" stop-opacity="0"/></linearGradient></defs><path d="M0 235 L35 220 L70 210 L105 214 L140 190 L175 198 L210 166 L245 180 L280 160 L315 170 L350 145 L385 150 L420 130 L455 145 L490 112 L525 118 L560 80 L595 95 L630 60 L665 72 L700 48 L735 64 L770 35 L805 42 L840 24 L900 18 L900 270 L0 270 Z" fill="url(#g)"/><polyline fill="none" stroke="#00e6a0" stroke-width="3" points="0,235 35,220 70,210 105,214 140,190 175,198 210,166 245,180 280,160 315,170 350,145 385,150 420,130 455,145 490,112 525,118 560,80 595,95 630,60 665,72 700,48 735,64 770,35 805,42 840,24 900,18"/></svg>
- <div class="demo">ⓘ Demo data — not real market data.</div></div>
+ <div class="card chart"><div class="row"><div style="display:flex;align-items:center;gap:12px">${coin(t)}<div><div style="font-size:21px;font-weight:800">${t.symbol}</div><div style="color:#7e8799">${t.name}</div></div></div><div style="display:flex;align-items:center;gap:9px"><button class="watch-btn ${watching?'watching':''}" onclick="toggleWatch('${k}')">${watching?'★ Watching':'☆ Watchlist'}</button><div class="price" style="font-size:20px">${t.price}<div class="up">${t.change} 24h</div></div></div></div>
+ <div class="timeframes">${['1H','4H','1D'].map(tf=>`<button class="${state.chartTf===tf?'active':''}" onclick="setChartTf('${tf}','${k}')">${tf}</button>`).join('')}</div>${chartSvg(state.chartTf)}<div class="demo">ⓘ Demo data — ${state.chartTf} view, not real market data.</div></div>
  <div class="grid" style="margin-top:12px">${[["Market Cap",t.market],["Liquidity",t.liq],["24h Volume",t.vol],["Holders",t.holders]].map(x=>`<div class="card metric"><small>${x[0]}</small><b>${x[1]}</b></div>`).join("")}</div>
  <h2 class="section-title">Why is ${t.symbol} moving?</h2><div style="color:#7e8799;margin-bottom:12px">3 things changed in the last 24h</div>
- ${[
- ["🐋 LARGE WALLET ACTIVITY","12 large wallets bought recently."],
- ["👥 HOLDER GROWTH","+1,240 holders in 24h."],
- ["💬 SOCIAL ACTIVITY","Mentions +312%."]
- ].map(x=>`<div class="why"><b>${x[0]}</b><span>${x[1]}</span></div>`).join("")}
+ ${[["🐋 LARGE WALLET ACTIVITY","12 large wallets bought recently."],["👥 HOLDER GROWTH","+1,240 holders in 24h."],["💬 SOCIAL ACTIVITY","Mentions +312%."]].map(x=>`<div class="why"><b>${x[0]}</b><span>${x[1]}</span></div>`).join("")}
  <div class="risk"><b>⚠️ Risk signals</b><br>Liquidity: ${t.liq}<br>Contract: Verified<br>Top-holder concentration: 38%</div>
  <h2 class="section-title">What people are saying</h2>
- ${demoPosts.filter(p=>p.token===k || k==="XYZ").slice(0,3).map(p=>`<div class="card post"><div class="user"><div class="avatar ${p.avatarCls||""}">${p.avatar}</div><div><b>${p.user}</b><span>${p.handle}</span></div></div><p style="margin-top:12px">${p.text}</p></div>`).join("")}
+ ${[...state.posts,...demoPosts].filter(p=>p.token===k || k==="XYZ").slice(0,3).map(p=>`<div class="card post"><div class="user"><div class="avatar ${p.avatarCls||""}">${p.avatar}</div><div><b>${p.user}</b><span>${p.handle}</span></div></div><p style="margin-top:12px">${p.text}</p>${p.photo?`<img src="${p.photo}" style="width:100%;max-height:360px;object-fit:cover;border-radius:12px;margin-top:8px">`:''}</div>`).join("")}
  <button class="primary" onclick="buy('${k}')">BUY ${t.symbol} ↗</button>`;
 }
 function buy(k){
@@ -170,15 +171,30 @@ function create(){
  <div class="user"><div class="avatar">AL</div><div><b>Alex Crypto</b><span>@AlexCrypto</span></div></div>
  <input id="postTitle" class="input" placeholder="Title — what's your thesis?">
  <textarea id="postText" class="textarea" placeholder="Share your analysis... What evidence are you seeing?"></textarea>
+ <div style="display:flex;gap:9px;flex-wrap:wrap;margin-bottom:10px"><button class="secondary" style="width:auto;margin:0;padding:10px 13px" onclick="document.getElementById('photoInput').click()">📷 Add photo</button><input id="photoInput" type="file" accept="image/*" style="display:none" onchange="previewPhoto(this)"><button class="secondary" style="width:auto;margin:0;padding:10px 13px" onclick="state.photo=null;document.getElementById('photoPreview').style.display='none'">Remove photo</button></div>
+ <div id="photoPreview" class="photo-preview"><img id="photoImg"></div>
  <div style="color:#7e8799"># Link a token</div><div class="chips">${Object.keys(tokens).map(k=>`<button class="chip" id="chip-${k}" onclick="selectChip('${k}')">${tokens[k].symbol}</button>`).join("")}</div>
  <button class="primary" onclick="publish()">Post</button></div>`;
 }
+function previewPhoto(input){const file=input.files?.[0];if(!file)return;const reader=new FileReader();reader.onload=e=>{state.photo=e.target.result;document.getElementById('photoImg').src=state.photo;document.getElementById('photoPreview').style.display='block'};reader.readAsDataURL(file)}
+
 let selected="XYZ";
 function selectChip(k){selected=k;document.querySelectorAll(".chip").forEach(x=>x.classList.remove("selected"));document.getElementById("chip-"+k).classList.add("selected")}
-function publish(){const title=document.getElementById("postTitle").value.trim()||"My $"+selected+" thesis";const text=document.getElementById("postText").value.trim()||"Watching the data and waiting for more evidence.";state.posts.unshift({user:"Alex Crypto",handle:"@AlexCrypto",avatar:"AL",title,text,token:selected,likes:0,comments:0});toast("Post published");go("home")}
+function publish(){const title=document.getElementById("postTitle").value.trim()||"My $"+selected+" thesis";const text=document.getElementById("postText").value.trim()||"Watching the data and waiting for more evidence.";state.posts.unshift({user:"Alex Crypto",handle:"@AlexCrypto",avatar:"AL",title,text,token:selected,likes:0,comments:0,photo:state.photo});state.photo=null;toast("Post published");go("home")}
 function activity(){
- return `<h1 class="page-title">Activity</h1><div class="subtitle">What is happening around you</div>${[
- ["SA","SarahOnchain","bought 1,190 $XYZ","3m ago","orange"],["MA","MarcusFlow","started following you","12m ago","blue"],["LE","LenaTrades","mentioned you in a $ABC post","45m ago","pink"],["SA","SarahOnchain","bought 483 $DEF","1h ago","orange"],["MA","MarcusFlow","sold 15,000 $DEGEN","2h ago","blue"],["LE","LenaTrades","bought 5.9M $PEPE","3h ago","pink"],["DA","DegenDave","started following you","5h ago",""]].map(x=>`<div class="card list-card"><div class="row"><div class="user"><div class="avatar ${x[4]}">${x[0]}</div><div><b>@${x[1]}</b> ${x[2]}<div style="color:#697386;font-size:12px">${x[3]}</div></div></div><span style="color:var(--green)">$${x[2].match(/\$(\w+)/)?.[1]||""}</span></div></div>`).join("")}`;
+ const items=[
+  ["🐋","SarahOnchain","bought 1,190 $XYZ","3m ago","orange"],
+  ["🔥","PULSE","$ABC is now #1 trending","12m ago","blue"],
+  ["☆","You","added $XYZ to your watchlist","18m ago",""],
+  ["💬","LenaTrades","posted about $DEF","45m ago","pink"],
+  ["💰","MarcusFlow","bought 483 $DEF","1h ago","blue"],
+  ["❤️","SarahOnchain","liked your $XYZ post","2h ago","orange"],
+  ["📈","PULSE","$PEPE social activity increased","3h ago",""],
+  ["👤","DegenDave","started following you","5h ago",""]
+ ];
+ return `<h1 class="page-title">Activity</h1><div class="subtitle">Market, social and wallet events in one place</div>
+ <div class="card list-card" style="margin-bottom:14px"><div class="row"><div><b>⚡ Your PULSE activity</b><div style="color:#697386;font-size:12px;margin-top:4px">Watchlists, posts, likes and trades</div></div><span style="color:var(--green)">${state.posts.length} new post${state.posts.length===1?'':'s'}</span></div></div>
+ ${items.map(x=>`<div class="card activity-item" style="margin-bottom:10px"><div class="row"><div class="user"><div class="activity-icon">${x[0]}</div><div><b>${x[1]}</b> ${x[2]}<div style="color:#697386;font-size:12px;margin-top:3px">${x[3]}</div></div></div></div></div>`).join('')}`;
 }
 function profile(){
  return `<div class="profile-head"><div class="avatar">AL</div><div><div class="profile-name">Alex Crypto</div><div class="profile-handle">@AlexCrypto</div></div></div><p class="profile-bio">Onchain analyst. Evidence before hype. DYOR.</p><div class="stats"><div><b>124</b> <span>Followers</span></div><div><b>87</b> <span>Following</span></div></div>
