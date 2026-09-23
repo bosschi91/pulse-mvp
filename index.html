@@ -129,7 +129,7 @@ function esc(v){return String(v??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").
 function allPosts(){return [...state.posts,...demoPosts]}
 function findPost(title){return allPosts().find(x=>x.title===title)}
 function postCard(p){
- const t=tokens[p.token]; const key=esc(p.title); const liked=state.likedPosts.has(p.title);
+ const t=tokens[p.token]; const key=esc(p.id||p.title); const liked=state.likedPosts.has(p.id||p.title);
  return `<article class="card post">
  <div class="user" onclick="event.stopPropagation();openProfile('${esc(p.handle)}','${esc(p.user)}')" style="cursor:pointer"><div class="avatar ${p.avatarCls||""}">${esc(p.avatar)}</div><div><b>${esc(p.user)}</b><span>${esc(p.handle)} · 2h</span></div></div>
  <h3>${esc(p.title)}</h3>${p.repostOf?`<div class="demo" style="margin-bottom:8px">🔁 Reposted · ${esc(p.repostOf)}</div>`:""}${p.repostNote?`<p style="color:#fff;font-weight:600">${esc(p.repostNote)}</p>`:""}<p>${esc(p.text)}</p>${p.photo?`<div style="position:relative"><img src="${p.photo}" style="width:100%;max-height:360px;object-fit:cover;border-radius:12px;margin-bottom:12px;filter:${p.photoFilter||'none'}">${p.mediaText||p.mediaEmoji?`<div class="media-overlay">${esc(p.mediaText||'')} ${esc(p.mediaEmoji||'')}</div>`:''}</div>`:''}${p.video?`<div style="position:relative"><video src="${p.video}" controls muted playsinline style="width:100%;max-height:420px;border-radius:12px;background:#050608;margin-bottom:12px"></video>${p.mediaText||p.mediaEmoji?`<div class="media-overlay">${esc(p.mediaText||'')} ${esc(p.mediaEmoji||'')}</div>`:''}</div>`:''}${t?tokenCard(p.token,false):''}
@@ -137,7 +137,7 @@ function postCard(p){
  </article>`;
 }
 function videoCard(p){
- const t=tokens[p.token]; const key=esc(p.title); const liked=state.likedPosts.has(p.title);
+ const t=tokens[p.token]; const key=esc(p.id||p.title); const liked=state.likedPosts.has(p.id||p.title);
  return `<article class="video-card"><video src="${p.video}" autoplay muted loop playsinline controls></video><div class="video-overlay"><div class="video-user" onclick="openProfile('${esc(p.handle)}','${esc(p.user)}')" style="cursor:pointer;pointer-events:auto"><div class="avatar ${p.avatarCls||''}">${esc(p.avatar)}</div><div><b>${esc(p.user)}</b><span>${esc(p.handle)}</span></div></div><div class="video-caption"><b>${esc(p.title)}</b><br>${esc(p.text)}</div>${t?`<div class="video-token" onclick="token('${esc(p.token)}')" style="cursor:pointer;pointer-events:auto">${t.symbol} · ${t.change}</div>`:''}</div><div class="video-actions"><div><button class="${liked?'liked':''}" onclick="likePost('${key}',this)">${liked?'♥':'♡'}</button><small>${p.likes+(liked?1:0)}</small></div><div><button onclick="openCommentsForPost('${key}')">💬</button><small>${p.comments}</small></div><div><button onclick="repost('${key}')">🔁</button><small>Repost</small></div><div><button onclick="savePost('${key}')">🔖</button><small>Save</small></div><div><button onclick="tip('${esc(p.user)}')">💰</button><small>Tip</small></div><div><button onclick="sharePost('${encodeURIComponent(p.title)}')">↗</button><small>Share</small></div>${t?`<div><button onclick="buy('${esc(p.token)}')">↗</button><small>Trade</small></div>`:''}</div></article>`;
 }
 function home(){
@@ -307,9 +307,23 @@ function openComments(idx){const p=demoPosts[idx]||state.posts[idx];if(p)openCom
 function closeComments(){const m=document.getElementById('commentsModal');if(m)m.style.display='none'}
 function addComment(){const input=document.getElementById('commentInput');if(!input||!input.value.trim())return;const safe=input.value.replace(/[<>]/g,'');document.getElementById('commentsList').insertAdjacentHTML('afterbegin',`<div class="comment"><div class="user"><div class="avatar">AL</div><div><b>Alex Crypto</b><span>@AlexCrypto</span></div></div><p style="margin:8px 0">${safe}</p><div class="comment-actions"><button>♡ Like</button><button>↩ Reply</button><button>↗ Share</button></div><small>just now</small></div>`);if(state.commentsPost)state.commentsPost.comments=(state.commentsPost.comments||0)+1;input.value='';toast('Comment added')}
 function replyToComment(name){const input=document.getElementById('commentInput');if(input){input.value='@'+String(name).replace(/\s+/g,'')+' ';input.focus();toast('Replying to '+name)}}
-function repost(title){const clean=String(title).replace(/&#39;/g,"'").replace(/&quot;/g,'"').replace(/&amp;/g,'&');const original=findPost(clean);if(!original){toast('Post not found');return}if(state.reposted.has(original.title)){state.reposted.delete(original.title);state.posts=state.posts.filter(p=>!(p.repostOf===original.title && p.user==='Alex Crypto'));toast('Repost removed');render();return}state.repostTarget=original;const m=document.getElementById('repostModal');if(m){document.getElementById('repostUser').textContent=original.user;document.getElementById('repostHandle').textContent=original.handle;document.getElementById('repostTitle').textContent=original.title;document.getElementById('repostText').textContent=original.text;document.getElementById('repostNote').value='';m.style.display='flex'}}
+function repost(identifier){
+ const raw=String(identifier).replace(/&#39;/g,"'").replace(/&quot;/g,'"').replace(/&amp;/g,'&');
+ const original=allPosts().find(x=>x.id===raw || x.title===raw);
+ if(!original){toast('Post not found');return}
+ if(state.reposted.has(original.id||original.title)){state.reposted.delete(original.id||original.title);state.posts=state.posts.filter(p=>p.repostOfId!==(original.id||original.title));toast('Repost removed');render();return}
+ state.repostTarget=original;
+ const m=document.getElementById('repostModal');
+ if(m){document.getElementById('repostUser').textContent=original.user;document.getElementById('repostHandle').textContent=original.handle;document.getElementById('repostTitle').textContent=original.title;document.getElementById('repostText').textContent=original.text;document.getElementById('repostNote').value='';m.style.display='flex';}
+}
 function closeRepost(){const m=document.getElementById('repostModal');if(m)m.style.display='none';state.repostTarget=null}
-function confirmRepost(){const original=state.repostTarget;if(!original){closeRepost();return}const note=document.getElementById('repostNote').value.trim();const copy={...original,id:'repost-'+Date.now(),title:original.title,text:original.text,user:'Alex Crypto',handle:'@AlexCrypto',avatar:'AL',repostOf:original.title,repostNote:note,likes:0,comments:0};state.reposted.add(original.title);state.posts.unshift(copy);closeRepost();toast('Reposted this post');render()}
+function confirmRepost(){
+ const original=state.repostTarget;if(!original){closeRepost();return}
+ const note=document.getElementById('repostNote').value.trim();
+ const originalId=original.id||original.title;
+ const copy={...original,id:'repost-'+Date.now(),title:original.title,text:original.text,user:'Alex Crypto',handle:'@AlexCrypto',avatar:'AL',repostOf:original.title,repostOfId:originalId,repostNote:note,likes:0,comments:0};
+ state.reposted.add(originalId);state.posts.unshift(copy);closeRepost();toast('Reposted this post');render()
+}
 function savePost(title){const clean=String(title).replace(/&#39;/g,"'").replace(/&quot;/g,'"').replace(/&amp;/g,'&');state.saved.has(clean)?state.saved.delete(clean):state.saved.add(clean);toast(state.saved.has(clean)?'Saved':'Removed from Saved');render()}
 function tip(name){state.tipTarget=name;const m=document.getElementById('tipModal');if(m){document.getElementById('tipTarget').textContent='Tip '+name;document.getElementById('tipAmount').value='';m.style.display='flex'}}
 function sendTip(){const n=Number(document.getElementById('tipAmount').value||0);if(n<=0){toast('Enter a tip amount');return}state.rewards+=Math.min(n,100);document.getElementById('tipModal').style.display='none';toast('Tip of $'+n.toFixed(2)+' sent to '+state.tipTarget);render()}
@@ -323,6 +337,8 @@ function saveEditorText(){state.mediaText=(document.getElementById('editorTextIn
 function saveEditorEmoji(e){state.mediaEmoji=String(e||'').trim();syncEditorPreview();toast(state.mediaEmoji?'Emoji added':'Emoji removed')}
 function addMediaText(){openMediaEditor('text')}
 function addMediaEmoji(){openMediaEditor('emoji')}
+function rewards(){return `<div class="back-row"><button class="secondary" style="width:auto;margin:0;padding:8px 12px" onclick="back()">← Back</button></div><h1 class="page-title">Creator Rewards</h1><div class="subtitle">Track tips and creator activity rewards.</div><div class="card reward-card"><div class="row"><div><b>🏆 Reward points</b><div class="money-value">${state.rewards.toLocaleString()}</div></div><span class="verified-token">Creator</span></div><div class="reward-bar"><span></span></div><div class="demo">1,250 points earned in this prototype</div></div><div class="grid" style="margin-top:12px"><div class="card metric"><b>💰 Tips</b><div class="demo">Tips from live streams and posts can contribute to creator rewards.</div></div><div class="card metric"><b>🎥 Live</b><div class="demo">Engagement from live sessions contributes to your creator activity.</div></div><div class="card metric"><b>❤️ Engagement</b><div class="demo">Likes, comments, saves and reposts are tracked.</div></div></div>`}
+function livePage(){return `<div class="back-row"><button class="secondary" style="width:auto;margin:0;padding:8px 12px" onclick="back()">← Back</button></div><h1 class="page-title">Go Live</h1><div class="subtitle">Start a live market discussion and let viewers tip you.</div><div class="card live-card"><div class="banner">🔴 Prototype live mode — camera streaming is simulated here. Real streaming needs a video infrastructure service.</div><div style="display:grid;place-items:center;min-height:300px;background:#08090d;border-radius:14px;border:1px solid var(--border);margin:12px 0"><div style="text-align:center"><div style="font-size:48px">📹</div><b>${state.live?'LIVE NOW':'Ready to go live'}</b><div class="demo">${state.live?'Viewers can send tips':'Preview and start your stream'}</div></div></div><div class="row"><button class="primary" style="width:auto" onclick="state.live=!state.live;toast(state.live?'You are live':'Live ended');render()">${state.live?'End Live':'🔴 Start Live'}</button><button class="secondary" style="width:auto;margin:0" onclick="tip('Live viewers')">💰 Custom Tip</button><button class="secondary" style="width:auto;margin:0" onclick="go('rewards')">🏆 Rewards</button></div></div><div class="card metric" style="margin-top:12px"><b>Live tips</b><div class="demo">Viewers can choose preset or custom tip amounts.</div></div>`}
 function render(){
  renderNav();
  const a=document.getElementById("app");
@@ -343,6 +359,8 @@ function render(){
  else if(state.page==="messages")a.innerHTML=messages();
  else if(state.page.startsWith("user:"))a.innerHTML=userProfile();
  else if(state.page.startsWith("dm:"))a.innerHTML=dmPage();
+ if(state.page!=="home" && !a.querySelector(".back-row") && !a.querySelector(".back-global")){a.insertAdjacentHTML("afterbegin",`<div class="back-row back-global"><button class="secondary" style="width:auto;margin:0 0 12px;padding:8px 12px" onclick="back()">← Back</button></div>`);}
+
  else if(state.page.startsWith("token:")){const k=state.page.split(":")[1];a.innerHTML=tokenPage(k);setTimeout(()=>renderTokenTV(tokens[k].tv),0);}
  else if(state.page.startsWith("buy:"))a.innerHTML=buyPage(state.page.split(":")[1]);
  else if(state.page.startsWith("success:"))a.innerHTML=successPage(state.page.split(":")[1]);
